@@ -69,7 +69,7 @@ bool app_CatchIt::load_resources()
 		"data/phong.vs",
 		"data/phong.fs",
 		
-		"data/cube.obj",
+		"data/sky.obj",
 		"data/sphere.obj"
 	};
 	
@@ -137,7 +137,7 @@ bool app_CatchIt::load_resources()
 	
 	//Meshes
 	std::cout << "Loading skybox mesh... ";
-		meshutil::load_obj("data/cube.obj", mesh_Skybox);
+		meshutil::load_obj("data/sky.obj", mesh_Skybox);
 		shader_Skybox.use();
 		mesh_Skybox.bind();
 	std::cout << "done\n";
@@ -224,25 +224,28 @@ void app_CatchIt::on_refresh()
 	static glm::mat4 mat_World;
 	static glm::mat4 mat_View;
 	
-	world_Player.calculateView();
-	mat_View = world_Player.transform(); //glm::lookAt(glm::vec3(0.0f), world_Food[0].position, glm::vec3(0.0f,0.0f,1.0f));
-	
 	//Draw sky
 	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	
 	shader_Skybox.use();
 	texture_Skybox.use();
+	mat_View = glm::lookAt(glm::vec3(0.0), dirvec(world_Player.orientation.z, world_Player.orientation.x), glm::vec3(0.0, 0.0, 1.0));
 	mat_World = glm::mat4();
 	mat_World = glm::scale(mat_World, glm::vec3(2.0f));
-	mat_World = glm::translate(mat_World, world_Player.position);
 	
 	shader_Skybox.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 	mesh_Skybox.draw();
 	
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 	
 	//Draw food
 	shader_Phong.use();
 	texture_Sphere.use();
+	
+	world_Player.calculateView();
+	mat_View = world_Player.transform(); //glm::lookAt(glm::vec3(0.0f), world_Food[0].position, glm::vec3(0.0f,0.0f,1.0f));
 	for(entity& e : world_Food)
 	{
 		e.calculateTransform();
