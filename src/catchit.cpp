@@ -1,12 +1,17 @@
 #include "catchit.h"
 
+#include <glm/gtc/random.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "glwrap/meshutil.h"
 #include "glwrap/texture_util.h"
 #include "glwrap/util.h"
 
 #include <fstream>
+#include <cstdlib> //std::exit
 
-#define dieret(msg, val) {std::cerr << msg; return val;}
+#define dieret(msg, val) {std::cerr << msg << std::endl; return val;}
+#define die(msg) {std::cerr << msg << std::endl; std::exit(1);}
 
 //Not strictly for existence, more like for accessibility
 //Which I basically need this for, so move on... 
@@ -39,6 +44,9 @@ bool app_CatchIt::gl_init()
 {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	
 	return 1;
 }
@@ -135,4 +143,85 @@ bool app_CatchIt::load_resources()
 		glBindFragDataLocation(shader_Phong.handle(), 0, "outColor");
 		shader_Phong.link();
 	std::cout << "done\n";
+	
+	return 1;
+}
+
+void app_CatchIt::on_open()
+{
+	if(!glew_init())
+		die("GLEW init fail");
+	
+	if(!gl_init())
+		die("GL init fail");
+	
+	if(!load_resources())
+		die("Couldn't load resources");
+	
+	//Init scene
+	world_Player.position = glm::vec3(0.0f);
+	world_Player.orientation = glm::vec3(0.0f);
+	world_Player.velocity = glm::vec3(0.0f);
+	
+	for(int i=0; i<10; i++)
+	{
+		entity e;
+			e.position = glm::ballRand(16.0f);
+			e.orientation = glm::vec3(0.0f);
+			e.velocity = glm::sphericalRand(1.0f);
+			
+		world_Food.push_back(e);
+	}
+	
+	//Initial resize ( window init kinda )
+	{
+		int w, h;
+		glfwGetWindowSize(this->handle(), &w, &h);
+		this->on_resize(w,h);
+	}
+}
+
+void app_CatchIt::on_resize(int w, int h)
+{
+	resizable_window::on_resize(w,h);
+	mat_Projection = glm::perspective(camera_FOV, (float)m_WindowAspect, 0.5f, 16.0f);
+}
+
+void app_CatchIt::on_refresh()
+{
+	static glm::mat4 mat_World;
+	static glm::mat4 mat_View;
+	
+	world_Player.calculateView();
+	mat_View = world_Player.transform();
+
+	//
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	//Draw sky
+	shader_Skybox.use();
+	texture_Skybox.use();
+	mat_World = glm::mat4();
+	glm::translate(mat_World, world_Player.position);
+	
+	shader_Skybox.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+	mesh_Skybox.draw();
+	
+	//Draw food
+	shader_Phong.use();
+	texture_Sphere.use();
+	
+	shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+	for(entity& e : world_Food)
+	{
+		e.calculateTransform();
+		mat_World = e.transform();
+		
+		mesh_Sphere.draw();
+	}
+	
+	glfwSwapBuffers(this->handle());
+			
+	if(glfwGetKey(this->handle(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(this->handle(), 1);
 }

@@ -1,8 +1,21 @@
 CXX_FLAGS = -std=c++11 -I/
-COMMON_DEPS = bin/window.o bin/resizable_window.o bin/shader.o bin/util.o bin/basic_mesh.o bin/separated_mesh.o bin/texture.o bin/texture_util.o
+GLWRAP_BINS = bin/window.o bin/resizable_window.o bin/shader.o bin/util.o bin/basic_mesh.o bin/separated_mesh.o bin/meshutil.o bin/texture.o bin/texture_util.o
+OWN_BINS = bin/entity.o bin/catchit.o
 LINKER_SETTINGS = -lglfw3 -lgdi32 -lopengl32 -lglew32 -lpng -lz
 
-part1:
+part1: glwrap
 	g++ ${CXX_FLAGS} -c src/entity.cpp -o bin/entity.o
 	g++ ${CXX_FLAGS} -c src/catchit.cpp -o bin/catchit.o
 	g++ ${CXX_FLAGS} -c src/part1.cpp -o bin/part1.o
+	g++ bin/part1.o ${OWN_BINS} ${GLWRAP_BINS} ${LINKER_SETTINGS} -o part1
+	
+glwrap: 
+	g++ ${CXX_FLAGS} -c src/glwrap/window.cpp -o bin/window.o
+	g++ ${CXX_FLAGS} -c src/glwrap/resizable_window.cpp -o bin/resizable_window.o
+	g++ ${CXX_FLAGS} -c src/glwrap/shader.cpp -o bin/shader.o
+	g++ ${CXX_FLAGS} -c src/glwrap/util.cpp -o bin/util.o
+	g++ ${CXX_FLAGS} -c src/glwrap/mesh/basic_mesh.cpp -o bin/basic_mesh.o
+	g++ ${CXX_FLAGS} -c src/glwrap/mesh/separated_mesh.cpp -o bin/separated_mesh.o
+	g++ ${CXX_FLAGS} -c src/glwrap/meshutil.cpp -o bin/meshutil.o
+	g++ ${CXX_FLAGS} -c src/glwrap/texture.cpp -o bin/texture.o
+	g++ ${CXX_FLAGS} -c src/glwrap/texture_util.cpp -o bin/texture_util.o
