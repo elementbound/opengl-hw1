@@ -1,4 +1,4 @@
-CXX_FLAGS = -std=c++11 -I../
+CXX_FLAGS = -std=c++11 -I/
 COMMON_DEPS = bin/window.o bin/resizable_window.o bin/shader.o bin/util.o bin/basic_mesh.o bin/separated_mesh.o bin/texture.o bin/texture_util.o
 LINKER_SETTINGS = -lglfw3 -lgdi32 -lopengl32 -lglew32 -lpng -lz
 

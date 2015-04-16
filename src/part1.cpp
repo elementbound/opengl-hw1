@@ -1,5 +1,6 @@
 #include "catchit.h"
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 void error_callback(int error, const char* error_str)
 {

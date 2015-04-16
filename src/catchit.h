@@ -15,7 +15,7 @@
 
 #include "entity.h"
 
-class app_CatchIt 
+class app_CatchIt : public resizable_window
 {
 	private: 
 		//Resources
