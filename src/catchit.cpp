@@ -2,11 +2,13 @@
 
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/io.hpp>
 
 #include "glwrap/meshutil.h"
 #include "glwrap/texture_util.h"
 #include "glwrap/util.h"
 
+#include <iostream>
 #include <fstream>
 #include <cstdlib> //std::exit
 
@@ -186,7 +188,7 @@ void app_CatchIt::on_open()
 void app_CatchIt::on_resize(int w, int h)
 {
 	resizable_window::on_resize(w,h);
-	mat_Projection = glm::perspective(camera_FOV, (float)m_WindowAspect, 1.0f, 8192.0f);
+	mat_Projection = glm::perspective(camera_FOV, (float)m_WindowAspect, 0.0625f, 8192.0f);
 }
 
 void app_CatchIt::update() 
@@ -198,28 +200,40 @@ void app_CatchIt::update()
 	
 	for(entity& e : world_Food)
 		e.position += float(deltaTime) * e.velocity;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_RIGHT))
+		world_Player.orientation.z += 0.25 * deltaTime;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_LEFT))
+		world_Player.orientation.z -= 0.25 * deltaTime;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_UP))
+		world_Player.orientation.x -= 0.25 * deltaTime;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_DOWN))
+		world_Player.orientation.x += 0.25 * deltaTime;
 }
 
 void app_CatchIt::on_refresh()
 {
 	update();
 	
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_CULL_FACE);
+	
 	static glm::mat4 mat_World;
 	static glm::mat4 mat_View;
 	
 	world_Player.calculateView();
 	mat_View = world_Player.transform(); //glm::lookAt(glm::vec3(0.0f), world_Food[0].position, glm::vec3(0.0f,0.0f,1.0f));
-
-	//
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//Draw sky
 	glDisable(GL_CULL_FACE);
 	shader_Skybox.use();
 	texture_Skybox.use();
 	mat_World = glm::mat4();
-	glm::scale(mat_World, glm::vec3(2.0f));
-	glm::translate(mat_World, world_Player.position);
+	mat_World = glm::scale(mat_World, glm::vec3(2.0f));
+	mat_World = glm::translate(mat_World, world_Player.position);
 	
 	shader_Skybox.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 	mesh_Skybox.draw();
