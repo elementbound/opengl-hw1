@@ -6,7 +6,7 @@
 class entity
 {
 	private: 
-		glm::mat4 m_Transform();
+		glm::mat4 m_Transform;
 		
 	public: 
 		glm::vec3 position;
