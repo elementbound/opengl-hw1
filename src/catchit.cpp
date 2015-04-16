@@ -44,9 +44,7 @@ bool app_CatchIt::gl_init()
 {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glEnable(GL_CULL_FACE);
 	
 	return 1;
 }
@@ -108,15 +106,6 @@ bool app_CatchIt::load_resources()
 		texture_Sphere.generate_mipmaps();
 	std::cout << "done\n";
 	
-	//Meshes
-	std::cout << "Loading skybox mesh... ";
-		meshutil::load_obj("data/cube.obj", mesh_Skybox);
-	std::cout << "done\n";
-	
-	std::cout << "Loading sphere mesh... ";
-		meshutil::load_obj("data/sphere.obj", mesh_Sphere);
-	std::cout << "done\n";
-	
 	//Shaders
 	std::cout << "Compiling skybox shader... ";
 		shader_Skybox.create();
@@ -142,6 +131,19 @@ bool app_CatchIt::load_resources()
 		
 		glBindFragDataLocation(shader_Phong.handle(), 0, "outColor");
 		shader_Phong.link();
+	std::cout << "done\n";
+	
+	//Meshes
+	std::cout << "Loading skybox mesh... ";
+		meshutil::load_obj("data/cube.obj", mesh_Skybox);
+		shader_Skybox.use();
+		mesh_Skybox.bind();
+	std::cout << "done\n";
+	
+	std::cout << "Loading sphere mesh... ";
+		meshutil::load_obj("data/sphere.obj", mesh_Sphere);
+		shader_Phong.use();
+		mesh_Sphere.bind();
 	std::cout << "done\n";
 	
 	return 1;
@@ -184,39 +186,55 @@ void app_CatchIt::on_open()
 void app_CatchIt::on_resize(int w, int h)
 {
 	resizable_window::on_resize(w,h);
-	mat_Projection = glm::perspective(camera_FOV, (float)m_WindowAspect, 0.5f, 16.0f);
+	mat_Projection = glm::perspective(camera_FOV, (float)m_WindowAspect, 1.0f, 8192.0f);
+}
+
+void app_CatchIt::update() 
+{
+	static double lastTime = 0;
+	double newTime = glfwGetTime();
+	double deltaTime = newTime - lastTime;
+	lastTime = newTime;
+	
+	for(entity& e : world_Food)
+		e.position += float(deltaTime) * e.velocity;
 }
 
 void app_CatchIt::on_refresh()
 {
+	update();
+	
 	static glm::mat4 mat_World;
 	static glm::mat4 mat_View;
 	
 	world_Player.calculateView();
-	mat_View = world_Player.transform();
+	mat_View = world_Player.transform(); //glm::lookAt(glm::vec3(0.0f), world_Food[0].position, glm::vec3(0.0f,0.0f,1.0f));
 
 	//
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//Draw sky
+	glDisable(GL_CULL_FACE);
 	shader_Skybox.use();
 	texture_Skybox.use();
 	mat_World = glm::mat4();
+	glm::scale(mat_World, glm::vec3(2.0f));
 	glm::translate(mat_World, world_Player.position);
 	
 	shader_Skybox.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 	mesh_Skybox.draw();
 	
+	glEnable(GL_CULL_FACE);
+	
 	//Draw food
 	shader_Phong.use();
 	texture_Sphere.use();
-	
-	shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 	for(entity& e : world_Food)
 	{
 		e.calculateTransform();
 		mat_World = e.transform();
 		
+		shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 		mesh_Sphere.draw();
 	}
 	
