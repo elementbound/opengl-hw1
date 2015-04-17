@@ -221,11 +221,11 @@ void app_CatchIt::update()
 		e.position += float(deltaTime) * e.velocity;
 		e.position = clamp(e.position, glm::vec3(-world_Radius+1.0f), glm::vec3(world_Radius-1.0f));
 		if(e.position.x-1.0f < -world_Radius) e.velocity.x =  std::abs(e.velocity.x);
-		if(e.position.x-1.0f >  world_Radius) e.velocity.x = -std::abs(e.velocity.x);
+		if(e.position.x+1.0f >  world_Radius) e.velocity.x = -std::abs(e.velocity.x);
 		if(e.position.y-1.0f < -world_Radius) e.velocity.y =  std::abs(e.velocity.y);
-		if(e.position.y-1.0f >  world_Radius) e.velocity.y = -std::abs(e.velocity.y);
+		if(e.position.y+1.0f >  world_Radius) e.velocity.y = -std::abs(e.velocity.y);
 		if(e.position.z-1.0f < -world_Radius) e.velocity.z =  std::abs(e.velocity.z);
-		if(e.position.z-1.0f >  world_Radius) e.velocity.z = -std::abs(e.velocity.z);
+		if(e.position.z+1.0f >  world_Radius) e.velocity.z = -std::abs(e.velocity.z);
 	}
 	
 	if(glfwGetKey(this->handle(), GLFW_KEY_RIGHT))

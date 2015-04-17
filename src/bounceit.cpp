@@ -193,6 +193,45 @@ void app_BounceIt::update()
 	lastTime = newTime;
 	
 	world_Sphere.position += world_Sphere.velocity * (float)deltaTime;
+	
+	if(world_Sphere.position.x-1.0f < -world_Radius) world_Sphere.velocity.x =  std::abs(world_Sphere.velocity.x);
+	if(world_Sphere.position.x+1.0f >  world_Radius) world_Sphere.velocity.x = -std::abs(world_Sphere.velocity.x);
+	if(world_Sphere.position.y-1.0f < -world_Radius) world_Sphere.velocity.y =  std::abs(world_Sphere.velocity.y);
+	if(world_Sphere.position.y+1.0f >  world_Radius) world_Sphere.velocity.y = -std::abs(world_Sphere.velocity.y);
+	if(world_Sphere.position.z-1.0f < -world_Radius) world_Sphere.velocity.z =  std::abs(world_Sphere.velocity.z);
+	if(world_Sphere.position.z+1.0f >  world_Radius) world_Sphere.velocity.z = -std::abs(world_Sphere.velocity.z);
+	
+	/*world_Sphere.position -= world_Box.position;
+	if(world_Sphere.position.x-1.0f < -1.0f) world_Sphere.velocity.x = -std::abs(world_Sphere.velocity.x);
+	if(world_Sphere.position.x+1.0f >  1.0f) world_Sphere.velocity.x = +std::abs(world_Sphere.velocity.x);
+	if(world_Sphere.position.y-1.0f < -1.0f) world_Sphere.velocity.y = -std::abs(world_Sphere.velocity.y);
+	if(world_Sphere.position.y+1.0f >  1.0f) world_Sphere.velocity.y = +std::abs(world_Sphere.velocity.y);
+	if(world_Sphere.position.z-1.0f < -1.0f) world_Sphere.velocity.z = -std::abs(world_Sphere.velocity.z);
+	if(world_Sphere.position.z+1.0f >  1.0f) world_Sphere.velocity.z = +std::abs(world_Sphere.velocity.z);
+	
+	world_Sphere.position += world_Box.position;*/
+	
+	//
+	
+	float box_speed = 1.0f * deltaTime;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_W))
+		world_Box.position.y += box_speed;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_S))
+		world_Box.position.y -= box_speed;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_D))
+		world_Box.position.x += box_speed;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_A))
+		world_Box.position.x -= box_speed;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_E))
+		world_Box.position.z += box_speed;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_Q))
+		world_Box.position.z -= box_speed;
 }
 
 void app_BounceIt::on_refresh()
@@ -203,8 +242,10 @@ void app_BounceIt::on_refresh()
 	
 	static glm::mat4 mat_World;
 	static glm::mat4 mat_View;
+	static glm::mat4 mat_Normal;
 	
-	mat_View = glm::lookAt(camera_Pos, glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	mat_Normal = glm::mat4();
+	mat_View = glm::lookAt(camera_Pos, world_Sphere.position, glm::vec3(0.0f, 0.0f, 1.0f));
 	
 	shader_Phong.use();
 		shader_Phong.set_uniform("uLights[0].type", 2);
@@ -218,21 +259,26 @@ void app_BounceIt::on_refresh()
 			shader_Phong.set_uniform((name + ".type").c_str(), 1);
 			shader_Phong.set_uniform((name + ".position").c_str(), spotlight_Pos[i]);
 			shader_Phong.set_uniform((name + ".direction").c_str(), direction);
-			shader_Phong.set_uniform((name + ".tresh").c_str(), std::cos(spotlight_Angle));
+			shader_Phong.set_uniform((name + ".thresh").c_str(), std::cos(spotlight_Angle));
 		}
 		
 		//Draw background/room
 		texture_Background.use();
 		mat_World = glm::scale(glm::mat4(), glm::vec3(-world_Radius));
+		mat_Normal = glm::scale(glm::mat4(), glm::vec3(-1.0f));
 		shader_Phong.set_uniform("uModel", mat_World);
 		shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+		shader_Phong.set_uniform("uNormalMatrix", mat_Normal);
 		mesh_Box.draw();
+		
+		mat_Normal = glm::mat4();
 		
 		//Draw box
 		texture_Box.use();
 		mat_World = glm::translate(glm::mat4(), glm::vec3(world_Box.position));
 		shader_Phong.set_uniform("uModel", mat_World);
 		shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+		shader_Phong.set_uniform("uNormalMatrix", mat_Normal);
 		mesh_Box.draw();
 		
 		//Draw sphere
@@ -240,6 +286,7 @@ void app_BounceIt::on_refresh()
 		mat_World = glm::translate(glm::mat4(), glm::vec3(world_Sphere.position));
 		shader_Phong.set_uniform("uModel", mat_World);
 		shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+		shader_Phong.set_uniform("uNormalMatrix", mat_Normal);
 		mesh_Sphere.draw();
 			
 	glfwSwapBuffers(this->handle());
