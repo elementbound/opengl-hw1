@@ -169,7 +169,7 @@ void app_BounceIt::on_open()
 	
 	pointlight_Pos = glm::vec3(0.0f);
 	
-	camera_Pos = spotlight_Pos[0];
+	camera_Pos = glm::vec3( world_Radius,  world_Radius,  world_Radius);
 	
 	//Initial resize ( window init kinda )
 	{
@@ -264,24 +264,28 @@ void app_BounceIt::on_refresh()
 	mat_View = glm::lookAt(camera_Pos, world_Sphere.position, glm::vec3(0.0f, 0.0f, 1.0f));
 	
 	shader_Phong.use();
-		shader_Phong.set_uniform("uLights[0].type", 2);
+		shader_Phong.set_uniform("uLights[0].type", 1);
 		shader_Phong.set_uniform("uLights[0].position", pointlight_Pos);
+		shader_Phong.set_uniform("uLights[0].color", glm::vec3(0.5));
 		
 		for(unsigned i=0; i<4; i++)
 		{
 			std::string name = "uLights[" + to_string(i+1) + "]";
-			glm::vec3 direction = glm::normalize(glm::vec3(0.0f) - spotlight_Pos[i]);
+			glm::vec3 direction = glm::normalize(world_Box.position - spotlight_Pos[i]);
 			
-			shader_Phong.set_uniform((name + ".type").c_str(), 1);
+			shader_Phong.set_uniform((name + ".type").c_str(), 2);
 			shader_Phong.set_uniform((name + ".position").c_str(), spotlight_Pos[i]);
 			shader_Phong.set_uniform((name + ".direction").c_str(), direction);
 			shader_Phong.set_uniform((name + ".thresh").c_str(), std::cos(spotlight_Angle));
+			shader_Phong.set_uniform((name + ".color").c_str(), glm::vec3(0.25));
 		}
+		
+		//shader_Phong.set_uniform("uLights[1].color", glm::vec3(1.0));
 		
 		//Draw background/room
 		texture_Background.use();
 		mat_World = glm::scale(glm::mat4(), glm::vec3(-world_Radius));
-		mat_Normal = glm::scale(glm::mat4(), glm::vec3(-1.0f));
+		mat_Normal = glm::scale(glm::mat4(), glm::vec3(1.0f));
 		shader_Phong.set_uniform("uModel", mat_World);
 		shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 		shader_Phong.set_uniform("uNormalMatrix", mat_Normal);
