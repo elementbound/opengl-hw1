@@ -4,15 +4,15 @@
 
 void entity::calculateTransform()
 {
-	m_Transform = glm::mat4(1.0f);
+	m_Transform = glm::mat4();
+	
+	//Apply translation
+	m_Transform = glm::translate(m_Transform, position);
 	
 	//Apply rotation
 	m_Transform = glm::rotate(m_Transform, orientation.x, glm::vec3(1.0f,0.0f,0.0f));
 	m_Transform = glm::rotate(m_Transform, orientation.y, glm::vec3(0.0f,1.0f,0.0f));
 	m_Transform = glm::rotate(m_Transform, orientation.z, glm::vec3(0.0f,0.0f,1.0f));
-	
-	//Apply translation
-	m_Transform = glm::translate(m_Transform, position);
 }
 
 void entity::calculateView()

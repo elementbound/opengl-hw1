@@ -69,8 +69,8 @@ bool app_CatchIt::load_resources()
 		
 		"data/skybox.vs",
 		"data/skybox.fs",
-		"data/phong.vs",
-		"data/phong.fs",
+		"data/textured.vs",
+		"data/textured.fs",
 		
 		"data/sky.obj",
 		"data/sphere.obj"
@@ -127,17 +127,17 @@ bool app_CatchIt::load_resources()
 		shader_Skybox.link();
 	std::cout << "done\n";
 	
-	std::cout << "Compiling phong shader... ";
-		shader_Phong.create();
+	std::cout << "Compiling textured shader... ";
+		shader_Textured.create();
 		
-		if(!shader_Phong.attach(read_file("data/phong.vs").c_str(), shader_program::shader_type::vertex))
+		if(!shader_Textured.attach(read_file("data/textured.vs").c_str(), shader_program::shader_type::vertex))
 			dieret("\nCouldn't attach vertex shader", 0);
 		
-		if(!shader_Phong.attach(read_file("data/phong.fs").c_str(), shader_program::shader_type::fragment))
+		if(!shader_Textured.attach(read_file("data/textured.fs").c_str(), shader_program::shader_type::fragment))
 			dieret("\nCouldn't attach fragment shader", 0);
 		
-		glBindFragDataLocation(shader_Phong.handle(), 0, "outColor");
-		shader_Phong.link();
+		glBindFragDataLocation(shader_Textured.handle(), 0, "outColor");
+		shader_Textured.link();
 	std::cout << "done\n";
 	
 	gldbg("Shaders loaded");
@@ -145,7 +145,7 @@ bool app_CatchIt::load_resources()
 	//Meshes
 	std::cout << "Loading sphere mesh... ";
 		meshutil::load_obj("data/sphere.obj", mesh_Sphere);
-		shader_Phong.use();
+		shader_Textured.use();
 		mesh_Sphere.bind();
 	std::cout << "done\n";
 	
@@ -299,18 +299,18 @@ void app_CatchIt::on_refresh()
 	texture_Skybox.use();
 	mat_World = glm::scale(glm::mat4(), glm::vec3(world_Radius));
 	
-	shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+	shader_Textured.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 	mesh_Skybox.draw();
 	
 	//Draw food
-	shader_Phong.use();
+	shader_Textured.use();
 	texture_Sphere.use();
 	for(entity& e : world_Food)
 	{
 		e.calculateTransform();
 		mat_World = e.transform();
 		
-		shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+		shader_Textured.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 		mesh_Sphere.draw();
 	}
 	
@@ -320,7 +320,7 @@ void app_CatchIt::on_refresh()
 		mat_World = world_Player.transform();
 		mat_World = glm::scale(mat_World, glm::vec3(2.0f));
 		
-		shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+		shader_Textured.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 		mesh_Sphere.draw();
 	}
 	

@@ -23,7 +23,7 @@ class app_CatchIt : public resizable_window
 		separated_mesh		mesh_Sphere;
 		
 		shader_program		shader_Skybox;
-		shader_program 		shader_Phong;
+		shader_program 		shader_Textured;
 		
 		texture_cube		texture_Skybox;
 		texture2d			texture_Sphere;
