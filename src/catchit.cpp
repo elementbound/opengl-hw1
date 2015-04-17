@@ -261,7 +261,7 @@ void app_CatchIt::update()
 	{
 		entity& e = world_Food[i];
 		
-		if(glm::length(e.position - world_Player.position) < 2.0f + 1.0f)
+		if(glm::length(e.position - world_Player.position) < 2.0f)
 		{
 			world_Food.erase(world_Food.begin() + i);
 			i = 0;

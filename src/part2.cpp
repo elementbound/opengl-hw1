@@ -20,6 +20,8 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	
 	wnd.open(640,360, "doSomeGL");
 	if(!wnd)
 		return 3;
