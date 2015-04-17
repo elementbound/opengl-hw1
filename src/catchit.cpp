@@ -14,6 +14,7 @@
 
 #define dieret(msg, val) {std::cerr << msg << std::endl; return val;}
 #define die(msg) {std::cerr << msg << std::endl; std::exit(1);}
+#define gldbg(msg) {GLenum err = glGetError(); std::cout << msg << gl_error_str(err) << '\n';}
 
 //Not strictly for existence, more like for accessibility
 //Which I basically need this for, so move on... 
@@ -47,6 +48,8 @@ bool app_CatchIt::gl_init()
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	
+	gldbg("After init");
 	
 	return 1;
 }
@@ -108,6 +111,8 @@ bool app_CatchIt::load_resources()
 		texture_Sphere.generate_mipmaps();
 	std::cout << "done\n";
 	
+	gldbg("Textures loaded");
+	
 	//Shaders
 	std::cout << "Compiling skybox shader... ";
 		shader_Skybox.create();
@@ -135,18 +140,22 @@ bool app_CatchIt::load_resources()
 		shader_Phong.link();
 	std::cout << "done\n";
 	
+	gldbg("Shaders loaded");
+	
 	//Meshes
+	std::cout << "Loading sphere mesh... ";
+		meshutil::load_obj("data/sphere.obj", mesh_Sphere);
+		shader_Phong.use();
+		mesh_Sphere.bind();
+	std::cout << "done\n";
+	
 	std::cout << "Loading skybox mesh... ";
 		meshutil::load_obj("data/sky.obj", mesh_Skybox);
 		shader_Skybox.use();
 		mesh_Skybox.bind();
 	std::cout << "done\n";
 	
-	std::cout << "Loading sphere mesh... ";
-		meshutil::load_obj("data/sphere.obj", mesh_Sphere);
-		shader_Phong.use();
-		mesh_Sphere.bind();
-	std::cout << "done\n";
+	gldbg("Meshes loaded");
 	
 	return 1;
 }
@@ -212,6 +221,14 @@ void app_CatchIt::update()
 	
 	if(glfwGetKey(this->handle(), GLFW_KEY_DOWN))
 		world_Player.orientation.x += 0.25 * deltaTime;
+	
+	glm::vec3 forward = dirvec(world_Player.orientation.z, world_Player.orientation.x) * 3.0f * (float)deltaTime;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_Q))
+		world_Player.position += forward;
+	
+	if(glfwGetKey(this->handle(), GLFW_KEY_W))
+		world_Player.position -= forward;
 }
 
 void app_CatchIt::on_refresh()
@@ -223,18 +240,20 @@ void app_CatchIt::on_refresh()
 	
 	static glm::mat4 mat_World;
 	static glm::mat4 mat_View;
+	mat_Projection = glm::perspective(camera_FOV, (float)m_WindowAspect, 0.0625f, 8192.0f);
+	
+	world_Player.calculateView();
+	mat_View = world_Player.transform(); //glm::lookAt(glm::vec3(0.0f), world_Food[0].position, glm::vec3(0.0f,0.0f,1.0f));
 	
 	//Draw sky
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_CULL_FACE);
+	//glDisable(GL_DEPTH_TEST);
 	
 	shader_Skybox.use();
 	texture_Skybox.use();
-	mat_View = glm::lookAt(glm::vec3(0.0), dirvec(world_Player.orientation.z, world_Player.orientation.x), glm::vec3(0.0, 0.0, 1.0));
-	mat_World = glm::mat4();
-	mat_World = glm::scale(mat_World, glm::vec3(2.0f));
+	mat_World = glm::scale(glm::mat4(), glm::vec3(32.0f));
 	
-	shader_Skybox.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+	shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 	mesh_Skybox.draw();
 	
 	//glEnable(GL_CULL_FACE);
@@ -243,9 +262,6 @@ void app_CatchIt::on_refresh()
 	//Draw food
 	shader_Phong.use();
 	texture_Sphere.use();
-	
-	world_Player.calculateView();
-	mat_View = world_Player.transform(); //glm::lookAt(glm::vec3(0.0f), world_Food[0].position, glm::vec3(0.0f,0.0f,1.0f));
 	for(entity& e : world_Food)
 	{
 		e.calculateTransform();
