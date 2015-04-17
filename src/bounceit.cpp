@@ -201,15 +201,31 @@ void app_BounceIt::update()
 	if(world_Sphere.position.z-1.0f < -world_Radius) world_Sphere.velocity.z =  std::abs(world_Sphere.velocity.z);
 	if(world_Sphere.position.z+1.0f >  world_Radius) world_Sphere.velocity.z = -std::abs(world_Sphere.velocity.z);
 	
-	/*world_Sphere.position -= world_Box.position;
-	if(world_Sphere.position.x-1.0f < -1.0f) world_Sphere.velocity.x = -std::abs(world_Sphere.velocity.x);
-	if(world_Sphere.position.x+1.0f >  1.0f) world_Sphere.velocity.x = +std::abs(world_Sphere.velocity.x);
-	if(world_Sphere.position.y-1.0f < -1.0f) world_Sphere.velocity.y = -std::abs(world_Sphere.velocity.y);
-	if(world_Sphere.position.y+1.0f >  1.0f) world_Sphere.velocity.y = +std::abs(world_Sphere.velocity.y);
-	if(world_Sphere.position.z-1.0f < -1.0f) world_Sphere.velocity.z = -std::abs(world_Sphere.velocity.z);
-	if(world_Sphere.position.z+1.0f >  1.0f) world_Sphere.velocity.z = +std::abs(world_Sphere.velocity.z);
+	world_Sphere.position -= world_Box.position;
 	
-	world_Sphere.position += world_Box.position;*/
+	//2.0f is box size + sphere radius
+	if(glm::clamp(world_Sphere.position.x, -2.0f, 2.0f) == world_Sphere.position.x && 
+	   glm::clamp(world_Sphere.position.y, -2.0f, 2.0f) == world_Sphere.position.y)
+	{
+		if(world_Sphere.position.z < 0.0f && world_Sphere.position.z > -2.0f) world_Sphere.velocity.z = -std::abs(world_Sphere.velocity.z);
+		if(world_Sphere.position.z > 0.0f && world_Sphere.position.z < +2.0f) world_Sphere.velocity.z = +std::abs(world_Sphere.velocity.z);
+	}
+	
+	if(glm::clamp(world_Sphere.position.x, -2.0f, 2.0f) == world_Sphere.position.x && 
+	   glm::clamp(world_Sphere.position.z, -2.0f, 2.0f) == world_Sphere.position.z)
+	{
+		if(world_Sphere.position.y < 0.0f && world_Sphere.position.y > -2.0f) world_Sphere.velocity.y = -std::abs(world_Sphere.velocity.y);
+		if(world_Sphere.position.y > 0.0f && world_Sphere.position.y < +2.0f) world_Sphere.velocity.y = +std::abs(world_Sphere.velocity.y);
+	}
+	
+	if(glm::clamp(world_Sphere.position.y, -2.0f, 2.0f) == world_Sphere.position.y && 
+	   glm::clamp(world_Sphere.position.z, -2.0f, 2.0f) == world_Sphere.position.z)
+	{
+		if(world_Sphere.position.x < 0.0f && world_Sphere.position.x > -2.0f) world_Sphere.velocity.x = -std::abs(world_Sphere.velocity.x);
+		if(world_Sphere.position.x > 0.0f && world_Sphere.position.x < +2.0f) world_Sphere.velocity.x = +std::abs(world_Sphere.velocity.x);
+	}
+	
+	world_Sphere.position += world_Box.position;
 	
 	//
 	
