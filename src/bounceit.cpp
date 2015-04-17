@@ -280,8 +280,6 @@ void app_BounceIt::on_refresh()
 			shader_Phong.set_uniform((name + ".color").c_str(), glm::vec3(0.25));
 		}
 		
-		//shader_Phong.set_uniform("uLights[1].color", glm::vec3(1.0));
-		
 		//Draw background/room
 		texture_Background.use();
 		mat_World = glm::scale(glm::mat4(), glm::vec3(-world_Radius));

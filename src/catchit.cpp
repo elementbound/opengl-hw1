@@ -298,17 +298,22 @@ void app_CatchIt::on_refresh()
 	texture_Skybox.use();
 	mat_World = glm::scale(glm::mat4(), glm::vec3(world_Radius));
 	
-	shader_Textured.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+	shader_Skybox.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 	mesh_Skybox.draw();
 	
 	//Draw food
 	shader_Textured.use();
+	shader_Textured.set_uniform("uAmbient", glm::vec3(0.5));
+	shader_Textured.set_uniform("uLightColor", glm::vec3(0.75));
+	shader_Textured.set_uniform("uLightPos", glm::vec3(0.0, 0.0, world_Radius * 1.025f));
+	
 	texture_Sphere.use();
 	for(entity& e : world_Food)
 	{
 		e.calculateTransform();
 		mat_World = e.transform();
 		
+		shader_Textured.set_uniform("uModel", mat_World);
 		shader_Textured.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 		mesh_Sphere.draw();
 	}
@@ -319,6 +324,7 @@ void app_CatchIt::on_refresh()
 		mat_World = world_Player.transform();
 		mat_World = glm::scale(mat_World, glm::vec3(2.0f));
 		
+		shader_Textured.set_uniform("uModel", mat_World);
 		shader_Textured.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 		mesh_Sphere.draw();
 	}
