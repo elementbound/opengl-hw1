@@ -37,9 +37,9 @@ class app_BounceIt : public resizable_window
 		glm::mat4			mat_Projection;
 		
 		//Lights
-		glm::vec3			dirlight_Pos[4];
+		glm::vec3			spotlight_Pos[4];
 		glm::vec3			pointlight_Pos;
-		float				dirlight_Angle = glm::radians(30.0f);
+		float				spotlight_Angle = glm::radians(30.0f);
 		
 		//etc
 		bool glew_init();

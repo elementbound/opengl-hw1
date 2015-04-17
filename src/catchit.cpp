@@ -286,7 +286,6 @@ void app_CatchIt::on_refresh()
 	
 	static glm::mat4 mat_World;
 	static glm::mat4 mat_View;
-	mat_Projection = glm::perspective(camera_FOV, (float)m_WindowAspect, 0.0625f, 8192.0f);
 	
 	world_Player.calculateView();
 	if(!camera_Mode)
