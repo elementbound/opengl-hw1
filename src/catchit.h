@@ -31,8 +31,9 @@ class app_CatchIt : public resizable_window
 		//World
 		std::vector<entity>	world_Food;
 		entity				world_Player;
+		float 				world_Radius = 16.0f;
 		
-		bool				camera_Mode;
+		bool				camera_Mode = 0;
 		float				camera_FOV = glm::radians(60.0f);
 		glm::mat4			mat_Projection;
 		
@@ -47,6 +48,8 @@ class app_CatchIt : public resizable_window
 		void on_open();
 		void on_resize(int w, int h);
 		void on_refresh();
+		
+		void on_key(int key, int scancode, int action, int mods);
 };
 
 #endif

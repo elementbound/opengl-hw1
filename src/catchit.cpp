@@ -179,7 +179,7 @@ void app_CatchIt::on_open()
 	for(int i=0; i<10; i++)
 	{
 		entity e;
-			e.position = glm::ballRand(16.0f);
+			e.position = glm::ballRand(world_Radius * 0.75f);
 			e.orientation = glm::vec3(0.0f);
 			e.velocity = glm::sphericalRand(1.0f);
 			
@@ -200,6 +200,15 @@ void app_CatchIt::on_resize(int w, int h)
 	mat_Projection = glm::perspective(camera_FOV, (float)m_WindowAspect, 0.0625f, 8192.0f);
 }
 
+void app_CatchIt::on_key(int key, int scancode, int action, int mods)
+{
+	if(key == GLFW_KEY_C && action == GLFW_PRESS)
+	{
+		std::cout << "Switching cameras... \n";
+		camera_Mode = !camera_Mode;
+	}
+}
+
 void app_CatchIt::update() 
 {
 	static double lastTime = 0;
@@ -208,7 +217,16 @@ void app_CatchIt::update()
 	lastTime = newTime;
 	
 	for(entity& e : world_Food)
+	{
 		e.position += float(deltaTime) * e.velocity;
+		e.position = clamp(e.position, glm::vec3(-world_Radius+1.0f), glm::vec3(world_Radius-1.0f));
+		if(e.position.x-1.0f < -world_Radius) e.velocity.x =  std::abs(e.velocity.x);
+		if(e.position.x-1.0f >  world_Radius) e.velocity.x = -std::abs(e.velocity.x);
+		if(e.position.y-1.0f < -world_Radius) e.velocity.y =  std::abs(e.velocity.y);
+		if(e.position.y-1.0f >  world_Radius) e.velocity.y = -std::abs(e.velocity.y);
+		if(e.position.z-1.0f < -world_Radius) e.velocity.z =  std::abs(e.velocity.z);
+		if(e.position.z-1.0f >  world_Radius) e.velocity.z = -std::abs(e.velocity.z);
+	}
 	
 	if(glfwGetKey(this->handle(), GLFW_KEY_RIGHT))
 		world_Player.orientation.z += 0.25 * deltaTime;
@@ -229,6 +247,34 @@ void app_CatchIt::update()
 	
 	if(glfwGetKey(this->handle(), GLFW_KEY_W))
 		world_Player.position -= forward;
+	
+	//AIMHACKZ CHEATER
+	if(glfwGetKey(this->handle(), GLFW_KEY_SPACE) && !world_Food.empty())
+	{
+		forward = normalize(world_Food[0].position - world_Player.position) * 4.0f * (float)deltaTime;
+		world_Player.position += forward;
+	}
+	
+	world_Player.position = clamp(world_Player.position, glm::vec3(-world_Radius+2.0f), glm::vec3(world_Radius-2.0f));
+	
+	for(unsigned i=0; i<world_Food.size(); i++)
+	{
+		entity& e = world_Food[i];
+		
+		if(glm::length(e.position - world_Player.position) < 2.0f + 1.0f)
+		{
+			world_Food.erase(world_Food.begin() + i);
+			i = 0;
+			
+			std::cout << "Remaining food: " << world_Food.size() << std::endl;
+		}
+	}
+	
+	if(world_Food.empty())
+	{
+		std::cout << "Game over, congrats\n";
+		std::exit(0);
+	}
 }
 
 void app_CatchIt::on_refresh()
@@ -243,21 +289,18 @@ void app_CatchIt::on_refresh()
 	mat_Projection = glm::perspective(camera_FOV, (float)m_WindowAspect, 0.0625f, 8192.0f);
 	
 	world_Player.calculateView();
-	mat_View = world_Player.transform(); //glm::lookAt(glm::vec3(0.0f), world_Food[0].position, glm::vec3(0.0f,0.0f,1.0f));
+	if(!camera_Mode)
+		mat_View = world_Player.transform(); 
+	else
+		mat_View = glm::lookAt(glm::vec3(world_Radius - 1.0f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	
 	//Draw sky
-	//glDisable(GL_CULL_FACE);
-	//glDisable(GL_DEPTH_TEST);
-	
 	shader_Skybox.use();
 	texture_Skybox.use();
-	mat_World = glm::scale(glm::mat4(), glm::vec3(32.0f));
+	mat_World = glm::scale(glm::mat4(), glm::vec3(world_Radius));
 	
 	shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 	mesh_Skybox.draw();
-	
-	//glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
 	
 	//Draw food
 	shader_Phong.use();
@@ -266,6 +309,16 @@ void app_CatchIt::on_refresh()
 	{
 		e.calculateTransform();
 		mat_World = e.transform();
+		
+		shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
+		mesh_Sphere.draw();
+	}
+	
+	if(camera_Mode)
+	{
+		world_Player.calculateTransform();
+		mat_World = world_Player.transform();
+		mat_World = glm::scale(mat_World, glm::vec3(2.0f));
 		
 		shader_Phong.set_uniform("uMVP", mat_Projection * mat_View * mat_World);
 		mesh_Sphere.draw();
