@@ -3,11 +3,19 @@ GLWRAP_BINS = bin/window.o bin/resizable_window.o bin/shader.o bin/util.o bin/ba
 OWN_BINS = bin/entity.o bin/catchit.o
 LINKER_SETTINGS = -lglfw3 -lgdi32 -lopengl32 -lglew32 -lpng -lz
 
-part1: glwrap
-	g++ ${CXX_FLAGS} -c src/entity.cpp -o bin/entity.o
-	g++ ${CXX_FLAGS} -c src/catchit.cpp -o bin/catchit.o
+all: part1 part2
+
+part1: glwrap deps
 	g++ ${CXX_FLAGS} -c src/part1.cpp -o bin/part1.o
 	g++ bin/part1.o ${OWN_BINS} ${GLWRAP_BINS} ${LINKER_SETTINGS} -o part1
+	
+part2: glwrap deps
+	g++ ${CXX_FLAGS} -c src/part2.cpp -o bin/part2.o
+	g++ bin/part2.o ${OWN_BINS} ${GLWRAP_BINS} ${LINKER_SETTINGS} -o part2
+
+deps: 
+	g++ ${CXX_FLAGS} -c src/entity.cpp -o bin/entity.o
+	g++ ${CXX_FLAGS} -c src/catchit.cpp -o bin/catchit.o
 	
 glwrap: 
 	g++ ${CXX_FLAGS} -c src/glwrap/window.cpp -o bin/window.o
@@ -19,3 +27,6 @@ glwrap:
 	g++ ${CXX_FLAGS} -c src/glwrap/meshutil.cpp -o bin/meshutil.o
 	g++ ${CXX_FLAGS} -c src/glwrap/texture.cpp -o bin/texture.o
 	g++ ${CXX_FLAGS} -c src/glwrap/texture_util.cpp -o bin/texture_util.o
+	
+clean: 
+	del bin\*.o
